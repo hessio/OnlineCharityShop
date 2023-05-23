@@ -1,0 +1,22 @@
+<!-- templates/profile.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+
+  <head>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <meta charset="UTF-8">
+    <title>Marketplace</title>
+    <!-- <script src="{{url_for('static', filename='script_marketplace.js')}}"></script> -->
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/marketplacestyle.css') }}">
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/app.css') }}">
+  </head>
+  <body>
+
+    <a href="{{ url_for('main.marketplace') }}" >Continue Shopping</a>
+    <!-- <button onclick="window.location.href='marketplace'">
+      Continue Shopping
+    </button> -->
+  </body>
+{% endblock %}

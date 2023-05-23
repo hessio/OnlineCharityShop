@@ -1,0 +1,205 @@
+<!-- templates/profile.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+
+  <head>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <meta charset="UTF-8">
+    <title>Marketplace</title>
+    <!-- <script src="{{url_for('static', filename='script_marketplace.js')}}"></script> -->
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/marketplacestyle.css') }}">
+    <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/app.css') }}">
+    <script type="text/javascript" src="https://sandbox.web.squarecdn.com/v1/square.js"></script>
+  </head>
+  <body>
+    <script>
+      const appId = 'sandbox-sq0idb-d6Fg6smPS_9eJXDphmulmA';
+      const locationId = 'L3HVQPPDXGPQQ';
+
+      // var xhr = new XMLHttpRequest();
+      // xhr.open("GET", "https://connect.squareupsandbox.com/v2/orders/({order_id})", true);
+      // xhr.setRequestHeader("Access-Control-Allow-Origin", "https://127.0.0.1:3000");
+      // xhr.setRequestHeader("Square-Version", "2023-04-19");
+      // xhr.setRequestHeader("Authorization", "Bearer EAAAEPsU9KFSNGPtGWVaAff_vT4-OlQ1WO0N2CQOLdN_mpUBYqPbmoPJYmLrJA9g");
+      // xhr.onreadystatechange = function() {
+      //   if (xhr.readyState === 4 && xhr.status === 200) {
+      //     var response = JSON.parse(xhr.responseText);
+      //     console.log(response);
+      //   }
+      // };
+      // xhr.send();
+
+      async function initializeCard(payments) {
+        const card = await payments.card();
+        await card.attach('#card-container');
+
+        return card;
+      }
+
+      async function createPayment(token, verificationToken) {
+        const body = JSON.stringify({
+          locationId,
+          sourceId: token,
+          verificationToken,
+          'order_id': '{{ order_id }}',
+        });
+
+        const paymentResponse = await fetch('/payment', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body,
+        });
+
+        if (paymentResponse.ok) {
+          return paymentResponse.json();
+        }
+
+        const errorBody = await paymentResponse.text();
+        throw new Error(errorBody);
+      }
+
+      async function tokenize(paymentMethod) {
+        const tokenResult = await paymentMethod.tokenize();
+        if (tokenResult.status === 'OK') {
+          alert(JSON.stringify(tokenResult, null, 2))
+          return tokenResult.token;
+        } else {
+          let errorMessage = `Tokenization failed with status: ${tokenResult.status}`;
+          if (tokenResult.errors) {
+            errorMessage += ` and errors: ${JSON.stringify(
+              tokenResult.errors
+            )}`;
+          }
+
+          throw new Error(errorMessage);
+        }
+      }
+
+      // Required in SCA Mandated Regions: Learn more at https://developer.squareup.com/docs/sca-overview
+      async function verifyBuyer(payments, token) {
+
+        // console.log('this is payments: ')
+        // console.log(payments);
+        const verificationDetails = {
+          amount: '10.00',
+          billingContact: {
+            addressLines: ['123 Main Street', 'Apartment 1'],
+            familyName: 'Doe',
+            givenName: 'John',
+            email: 'jondoe@gmail.com',
+            country: 'IE',
+            phone: '3214563987',
+            region: 'DUB',
+            city: 'Dublin',
+          },
+          currencyCode: 'EUR',
+          intent: 'CHARGE',
+        };
+        // console.log(verificationDetails);
+
+        const verificationResults = await payments.verifyBuyer(
+          token,
+          verificationDetails
+        );
+        return verificationResults.token;
+      }
+
+      // status is either SUCCESS or FAILURE;
+      function displayPaymentResults(status) {
+        const statusContainer = document.getElementById(
+          'payment-status-container'
+        );
+        if (status === 'SUCCESS') {
+          statusContainer.classList.remove('is-failure');
+          statusContainer.classList.add('is-success');
+        } else {
+          statusContainer.classList.remove('is-success');
+          statusContainer.classList.add('is-failure');
+        }
+
+        statusContainer.style.visibility = 'visible';
+      }
+
+      document.addEventListener('DOMContentLoaded', async function () {
+        // console.log('test');
+        if (!window.Square) {
+          throw new Error('Square.js failed to load properly');
+        }
+
+        let payments;
+        try {
+          payments = window.Square.payments(appId, locationId);
+          console.log('payemtns');
+          console.log(typeof payments);
+        } catch {
+          
+          const statusContainer = document.getElementById(
+            'payment-status-container'
+          );
+          statusContainer.className = 'missing-credentials';
+          statusContainer.style.visibility = 'visible';
+          return;
+        }
+
+        let card;
+        try {
+          card = await initializeCard(payments);
+        } catch (e) {
+          console.error('Initializing Card failed', e);
+          return;
+        }
+
+        async function handlePaymentMethodSubmission(event, card) {
+          event.preventDefault();
+
+          try {
+            // disable the submit button as we await tokenization and make a payment request.
+            cardButton.disabled = true;
+            const token = await tokenize(card);
+            const verificationToken = await verifyBuyer(payments, token);
+            const paymentResults = await createPayment(
+              token,
+              verificationToken
+            );
+
+            displayPaymentResults('SUCCESS');
+
+            body = {
+              "status": "SUCCESS"
+            }
+
+            const paymentResponse = await fetch('/completed_purchase', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body,
+            });
+
+            window.location.replace("/completed_purchase");
+
+            console.debug('Payment Success', paymentResults);
+          } catch (e) {
+            cardButton.disabled = false;
+            displayPaymentResults('FAILURE');
+            console.error(e.message);
+          }
+        }
+
+        const cardButton = document.getElementById('card-button');
+        cardButton.addEventListener('click', async function (event) {
+          await handlePaymentMethodSubmission(event, card);
+        });
+      });
+    </script>
+    <form id="payment-form">
+      <div id="card-container"></div>
+      <button id="card-button" type="button">Pay €{{ price }}</button>
+    </form>
+    <div id="payment-status-container"></div>
+  </body>
+{% endblock %}

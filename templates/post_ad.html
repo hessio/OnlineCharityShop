@@ -1,0 +1,96 @@
+<!-- templates/base.html -->
+
+{% extends "base.html" %}
+
+{% block content %}
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Post an Ad</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f1f1f1;
+      }
+      form {
+        background-color: #fff;
+        border-radius: 25px;
+        padding: 20px;
+        width: 50%;
+        margin: auto;
+        box-shadow: 0 0 20px rgba(0,0,0,0.2);
+      }
+      h1 {
+        text-align: center;
+        color: #444;
+        margin-bottom: 20px;
+      }
+      label {
+        display: block;
+        font-size: 18px;
+        margin-bottom: 10px;
+      }
+      input[type="text"], input[type="email"], input[type="number"], textarea {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        box-sizing: border-box;
+        margin-bottom: 20px;
+        font-size: 16px;
+      }
+      input[type="submit"] {
+        background-color: #1841f5;
+        color: #fff;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 18px;
+      }
+      input[type="submit"]:hover {
+        background-color: #1436cc;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Post an Ad</h1>
+    <form method="POST" action="/post_ad" enctype="multipart/form-data">
+            <div class="field">
+                <div class="control">
+                    <input class="input is-large" type="text" name="title" placeholder="Title" autofocus="">
+                </div>
+            </div>
+	    <div class="field">
+                <div class="control">
+                    <input class="input is-large" type="text" name="description" placeholder="Description" autofocus="">
+                </div>
+            </div>
+            
+            <div class="field">
+                <div class="control">
+                    <input class="input is-large" type="number" name="price" placeholder="Price">
+                </div>
+            </div>
+            <div style="display: flex; justify-content: center;">
+            <div class="file has-name is-boxed">
+              <label class="file-label" id="file-label">
+                <input class="file-input" id="file-input" type="file" name="image">
+                <span class="file-cta">
+                  <span class="file-icon">
+                    <i class="fas fa-upload"></i>
+                  </span>
+                  <span id="file-label-span" style="color:black;">Choose file...</span>
+                </span>
+                <span class="file-name">
+                  No file selected
+                </span>
+              </label>
+            </div>
+            </div>
+            <button class="button is-block is-info is-large is-fullwidth">Post Ad</button>
+        </form>
+        <script src="{{url_for('static', filename='script.js')}}"></script>
+  </body>
+
+{% endblock %}
