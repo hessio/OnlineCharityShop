@@ -3,8 +3,26 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="title">
+<head>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <meta charset="UTF-8">
+  <title>Landing Page</title>
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/registerpage.css') }}">
+  <!-- <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/app.css') }}"> -->
+  <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/base.css') }}">
+</head>
+
+<h1 class="title" style="color:black;">
   Welcome, {{ name }}!
 </h1>
-<button onclick="location.href='/marketplace'">Marketplace</button>
+<!-- <button onclick="location.href='/marketplace'">Marketplace</button>
+<button onclick="location.href='/post_ad'">Post an ad</button> -->
+
+<div class="choice">
+  <a href="/marketplace" class="button is-block is-info is-large is-fullwidth">Marketplace</a>
+  </br>
+  <a href="/post_ad" class="button is-block is-info is-large is-fullwidth">Post an ad</a>
+  </br>
+  <a href="/#" class="button is-block is-info is-large is-fullwidth">Edit your details</a>
+</div>
 {% endblock %}

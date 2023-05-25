@@ -13,13 +13,6 @@
 
   </head>
   <body>
-    <!-- <form id="payment-form">
-      <div id="card-container"></div>
-      <button id="card-button" type="button">Pay $1.00</button>
-    </form>
-    <div id="payment-status-container"></div> -->
-
-    <!-- <div id="my-div">TEST</div> -->
     <div class="container">
       <h1 class="test-payments" style="font-size: xx-large;">Marketplace</h1>
       <div class="item-list">
@@ -30,6 +23,7 @@
               <div class="details">
                 <strong><p class="price">€{{ items[key]['Price'] }}</p></strong>
                 <h2 id="capitalised">{{ items[key]['Name'] }}</h2>
+                </br>
                 <p id="capitalised" class="description">{{ items[key]['Description']  }}</p>
               </div>  
             </div>
@@ -42,15 +36,20 @@
         <div id="popup{{ loop.index }}" class="modal">
           <div class="modal-content">
             <div class="half-size">
-              <img class="item-image" src="{{ items[key]['Image'] }}">
-              <p class="price"><strong>€{{ items[key]['Price'] }}</strong></p>
-              <h2 id="capitalised">{{ items[key]['Name']  }}</h2>
-              <p class="description" id="capitalised">{{ items[key]['Description'] }}</p>
-              <form method="POST" action="{{ url_for('main.create_order') }}">
-                <input type="hidden" name="button_value" value="{{ items[key]['id'] }}">
-                <button class="buy-btn" type="submit">Buy Now!</button>
-              </form>
-              <button class="close-btn" data-modal="#popup{{ loop.index }}">Close</button>
+              <img class="item-image-modal" src="{{ items[key]['Image'] }}">
+              <div class="details-location-modal">
+                <div class="details-modal">
+                  <p><strong>€{{ items[key]['Price'] }}</strong></p>
+                  <h2>{{ items[key]['Name']  }}</h2>
+                  </br>
+                  <p>{{ items[key]['Description'] }}</p>
+                  <form method="POST" action="{{ url_for('main.create_order') }}">
+                    <input type="hidden" name="button_value" value="{{ items[key]['id'] }}">
+                    <button class="buy-btn" type="submit">Buy Now!</button>
+                  </form>
+                  <button class="close-btn" data-modal="#popup{{ loop.index }}">Close</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -79,16 +78,11 @@
             error: function(xhr) {
               // handle error response
               console.log(response);
-              // sleepSync(10000);
             }
         });
 
         sleepSync(1000);
 
-        // setTimeout(function() {
-        //   // Navigate to the new page
-        //   window.location.href = '/new_page';
-        // }, 3000); // Change the delay time as needed
       }
     </script>
     <script src="{{url_for('static', filename='script_marketplace.js')}}"></script>

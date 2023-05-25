@@ -8,7 +8,6 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <meta charset="UTF-8">
     <title>Marketplace</title>
-    <!-- <script src="{{url_for('static', filename='script_marketplace.js')}}"></script> -->
     <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/marketplacestyle.css') }}">
     <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/app.css') }}">
     <script type="text/javascript" src="https://sandbox.web.squarecdn.com/v1/square.js"></script>
@@ -17,19 +16,6 @@
     <script>
       const appId = 'sandbox-sq0idb-d6Fg6smPS_9eJXDphmulmA';
       const locationId = 'L3HVQPPDXGPQQ';
-
-      // var xhr = new XMLHttpRequest();
-      // xhr.open("GET", "https://connect.squareupsandbox.com/v2/orders/({order_id})", true);
-      // xhr.setRequestHeader("Access-Control-Allow-Origin", "https://127.0.0.1:3000");
-      // xhr.setRequestHeader("Square-Version", "2023-04-19");
-      // xhr.setRequestHeader("Authorization", "Bearer EAAAEPsU9KFSNGPtGWVaAff_vT4-OlQ1WO0N2CQOLdN_mpUBYqPbmoPJYmLrJA9g");
-      // xhr.onreadystatechange = function() {
-      //   if (xhr.readyState === 4 && xhr.status === 200) {
-      //     var response = JSON.parse(xhr.responseText);
-      //     console.log(response);
-      //   }
-      // };
-      // xhr.send();
 
       async function initializeCard(payments) {
         const card = await payments.card();
@@ -65,7 +51,6 @@
       async function tokenize(paymentMethod) {
         const tokenResult = await paymentMethod.tokenize();
         if (tokenResult.status === 'OK') {
-          alert(JSON.stringify(tokenResult, null, 2))
           return tokenResult.token;
         } else {
           let errorMessage = `Tokenization failed with status: ${tokenResult.status}`;
@@ -82,9 +67,41 @@
       // Required in SCA Mandated Regions: Learn more at https://developer.squareup.com/docs/sca-overview
       async function verifyBuyer(payments, token) {
 
-        // console.log('this is payments: ')
-        // console.log(payments);
-        const verificationDetails = {
+        const body = JSON.stringify({
+          'order_id': '{{ order_id }}',
+        });
+
+        var verificationDetails = '';
+        // const getUserDetails = await fetch('/get_details', {
+        //   method: 'POST',
+        //   headers: {
+        //     'Content-Type': 'application/json',
+        //   },
+        //   body,
+        // });
+
+        const address = fetch("/get_details",
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body,
+          })
+          .then((response) => response.json())
+          .then((user) => {
+            return user;
+          });
+
+        const printAddress = async () => {
+          const a = await address;
+          verificationDetails = a;
+          console.log(a);
+        };
+
+        printAddress();
+
+        const verificationDetails_ = {
           amount: '10.00',
           billingContact: {
             addressLines: ['123 Main Street', 'Apartment 1'],
@@ -99,11 +116,10 @@
           currencyCode: 'EUR',
           intent: 'CHARGE',
         };
-        // console.log(verificationDetails);
-
+        
         const verificationResults = await payments.verifyBuyer(
           token,
-          verificationDetails
+          verificationDetails_
         );
         return verificationResults.token;
       }
@@ -125,7 +141,7 @@
       }
 
       document.addEventListener('DOMContentLoaded', async function () {
-        // console.log('test');
+
         if (!window.Square) {
           throw new Error('Square.js failed to load properly');
         }
@@ -133,8 +149,6 @@
         let payments;
         try {
           payments = window.Square.payments(appId, locationId);
-          console.log('payemtns');
-          console.log(typeof payments);
         } catch {
           
           const statusContainer = document.getElementById(

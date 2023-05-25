@@ -52,17 +52,16 @@ def attach_image(item_id, image_file):
 
 # Create an item in the Square catalog
 def create_item(item_data):
-    #print(item_data)
+
     try:
         # Use the Catalog API to create the item
         catalog_api = square_client.catalog
-        #print(catalog_api)
+
         response = catalog_api.upsert_catalog_object(body=item_data)
 
-        print('thihs the response ', str(response))
         # Return the item ID if successful
         if response.is_success():
-            print(response.body)
+            # print(response.body)
             item_id = response.body['id_mappings'][0]['object_id']
             print(item_id)
             return item_id
@@ -73,70 +72,6 @@ def create_item(item_data):
         print(e)
         return None
 
-
-items = {"item1": {"Name": "toy1", "Price": "30", "Description": "This is a toy I had in my family for 3 generations and has served us well"},
-"item2": {"Name": "toy2", "Price": "34", "Description": "This is a fun toy I had in my family for 5 yeasrs and has served us well"},
-"item3": {"Name": "toy3", "Price": "35", "Description": "This had in my family and has served us well you're welcome eat shit"},
-"item4": {"Name": "toy4", "Price": "36", "Description": "I had in my family has served us well"},
-"item5": {"Name": "toy5", "Price": "37", "Description": "This us well"},
-"item5": {"Name": "toy6", "Price": "38", "Description": "Change my mind"},
-}
-
-'''
-# Create a route for creating an item
-#@app.route('/create_marketplace_item', methods=['POST'])
-def create_marketplace_item():
-    # Parse request data
-
-    item_data = {
-        "idempotency_key": str(uuid.uuid4()),
-        "object": {
-        "type": "ITEM",
-        "id": "#111",
-        "item_data": {
-          "name": "fuckinghellhatethisapi",
-          "available_online": False,
-          "available_for_pickup": True,
-          "available_electronically": False,
-          "variations": [
-            {
-              "type": "ITEM_VARIATION",
-              "id": "#13131",
-              "version": 11,
-              "is_deleted": False,
-              "item_data": {
-                "name": "killmenow",
-                "available_online": False,
-                "available_for_pickup": True,
-                "available_electronically": False
-            },
-              "item_variation_data": {
-                "pricing_type": "FIXED_PRICING",
-                "price_money": {
-                  "amount": 100,
-                  "currency": "EUR"
-                },
-                "track_inventory": True,
-                "available_for_booking": False,
-                "sellable": True,
-                "stockable": False
-              }
-            }
-          ]
-        }
-      }
-    }
-
-    # Create the item in the Square catalog
-    item_id = create_item(item_data)
-
-    # Return the item ID or an error message
-    if item_id:
-        return jsonify({"item_id": item_id}), 201
-    else:
-        return jsonify({"error": "Failed to create item"}), 500
-'''
-
 @main.route('/')
 def index():
     #print('what the fuck')
@@ -145,7 +80,6 @@ def index():
 @main.route('/profile')
 @login_required
 def profile():
-    #print(current_user.first_name)
     return render_template('profile.html', name=current_user.first_name)
 
 @main.route('/post_ad', methods=['GET', 'POST'])
@@ -194,7 +128,8 @@ def post_ad():
                     "stockable": False
                   }
                 }
-              ]
+              ],
+              "description_html": desc,
             }
           }
         }
@@ -202,19 +137,12 @@ def post_ad():
         # Create the item in the Square catalog
         item_id = create_item(item_data)
 
-        # print(item_id)
-
-        # file_to_upload_path =  #"image_example_1.png" # Modify this to point to your desired file.
         f_stream = open('project/uploads/' + image.filename, "rb")
         print('project/uploads/' + image.filename)
 
         attach_image(item_id, f_stream)
-
-        # # Return the item ID or an error message
-        # if item_id:
-        #     return jsonify({"item_id": item_id}), 201
-        # else:
-        #     return jsonify({"error": "Failed to create item"}), 500
+        print(current_user.id)
+        # attach_user(current_user.)
     
     return render_template('post_ad.html')
 
@@ -237,7 +165,7 @@ def create_order():
         "idempotency_key": str(uuid.uuid4())
       }
     )
-    price = "{:0.2f}".format(round((float(response.body['order']['line_items'][0]['base_price_money']['amount'])/100), 2))
+    price = "{:0.2f}".format(round((float(response.body['order']['line_items'][0]['base_price_money']['amount'])), 2))
 
     order_id = response.body['order']['id']
     # print('create order response: ', response.body)
@@ -285,7 +213,7 @@ def process_payment():
   payment_request = {
     'source_id': nonce,
     'amount_money': {
-      'amount': price, # $1.00 charge
+      'amount': price,
       'currency': 'EUR'
     },
     'idempotency_key': nonce # Use nonce as idempotency key
@@ -309,6 +237,43 @@ def process_payment():
       'error': response.errors[0]['detail']
     })
 
+
+# Define a route to process the payment
+@main.route('/get_details', methods=['POST'])
+def process_user_details():
+
+  request_body = flask.request.get_json()
+  # order_id = request_body.get('order_id')
+  
+  cust_result = square_client.customers.retrieve_customer(
+    customer_id = current_user.square_cust_id,
+  )
+
+  order_result = square_client.orders.retrieve_order(
+    order_id = request_body.get('order_id')
+  )
+
+  print('order result: ', order_result.body['order']['line_items'][0]['base_price_money']['amount'])
+
+  print('this is hte order result', cust_result.body['customer']['address'])
+
+  address = [cust_result.body['customer']['address']['address_line_1'], cust_result.body['customer']['address']['address_line_2']]
+  return flask.jsonify({
+        'amount': str(order_result.body['order']['line_items'][0]['base_price_money']['amount']),
+        'billingContact': {
+            'addressLines': address,
+            'familyName': cust_result.body['customer']['given_name'],
+            'givenName': cust_result.body['customer']['family_name'],
+            'email': cust_result.body['customer']['email_address'],
+            'country': 'IE',
+            'phone': cust_result.body['customer']['phone_number'],
+            'region': 'DUB',
+            'city': 'Dublin',
+        },
+        'currencyCode': 'EUR',
+        'intent': 'CHARGE',
+    })
+
 @main.route('/completed_purchase', methods=["POST", "GET"])
 def completed_purchase():
     # time.sleep(1000)
@@ -321,7 +286,8 @@ def marketplace():
 
     result = square_client.catalog.search_catalog_objects(
       body = {
-        "include_related_objects": True
+        "include_related_objects": True,
+        "include_deleted_objects": False,
       }
     )
     response = result.body['objects']
@@ -332,9 +298,9 @@ def marketplace():
     desc = ''
     image=''
     item_id=''
+    price_money = ''
     
     for item in response:
-        # print(item['item_data']['variations'][0]['id'])
 
         try:
             item_id = item['item_data']['variations'][0]['id']
@@ -352,20 +318,26 @@ def marketplace():
             #print(item['id'])
 
         try:
-            #print('Description: ', item['item_data']['description_plaintext'])
+
+            print('price test', item['item_data']['variations'][0]['item_variation_data']['price_money']['amount'])
+            price_money = item['item_data']['variations'][0]['item_variation_data']['price_money']['amount']
+
+        except:
+            price_money = ''
+
+        try:
+            print('Description: ', item['item_data']['description_plaintext'])
             desc=item['item_data']['description_plaintext']
         except:
             desc=''
-            #print('no desc')
-        #print('\n\n')
-        # print(image)
+
         new_items['item'+str(count)] = {'Name': item['item_data']['name'], 
-        'Price': item['item_data']['variations'][0]['item_variation_data']['price_money']['amount'],
+        'Price': price_money, #item['item_data']['variations'][0]['item_variation_data']['price_money']['amount'],
         'Description': desc,
         'Image': image,
         'id': item_id
         }
         count += 1
-    #print(new_items)
+    print(desc)
 
     return render_template('marketplace.html', items=new_items)
