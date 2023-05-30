@@ -10,6 +10,7 @@ import random
 import time
 import square
 import flask
+import openai
 
 # Load environment variables from .env file
 load_dotenv()
@@ -23,6 +24,8 @@ square_client = Client(
     access_token=access_token,
     environment='sandbox'
 )
+
+openai.api_key = os.getenv("OPEN_AI_KEY")
 
 
 main = Blueprint('main', __name__)
@@ -280,6 +283,23 @@ def completed_purchase():
     print(request)
     return render_template('completed_purchase.html')
 
+@main.route('/ai_update', methods=['POST'])
+def process_openai_request():
+    try:
+        message = request.json['message']
+
+        ai_prompt = 'You are a an AI language model and I want you to rewrite this description for me to make the item I am selling more appealing to potential buyers here is the description: "' + message + '"'
+        completion = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": ai_prompt}]
+        )
+        response = completion.choices[0].message
+
+        return flask.jsonify({'response': response})
+    except Exception as e:
+        print(e)
+        return flask.jsonify({'error': 'An error occurred'}), 500
+
 @main.route('/marketplace')
 @login_required
 def marketplace():
@@ -299,6 +319,8 @@ def marketplace():
     image=''
     item_id=''
     price_money = ''
+
+    print(related)
     
     for item in response:
 
@@ -309,16 +331,16 @@ def marketplace():
             item_id='None'
 
         try:
-
             print('test', item['item_data']['image_ids'])
-            image = related[0]['image_data']['url']
+            for rel in related:
+                if rel['id'] == item['item_data']['image_ids'][0]:
+                    image = rel['image_data']['url']
 
         except:
             image = '/static/placeholder.png'
             #print(item['id'])
 
         try:
-
             print('price test', item['item_data']['variations'][0]['item_variation_data']['price_money']['amount'])
             price_money = item['item_data']['variations'][0]['item_variation_data']['price_money']['amount']
 
@@ -331,6 +353,7 @@ def marketplace():
         except:
             desc=''
 
+        print(image)
         new_items['item'+str(count)] = {'Name': item['item_data']['name'], 
         'Price': price_money, #item['item_data']['variations'][0]['item_variation_data']['price_money']['amount'],
         'Description': desc,
@@ -338,6 +361,6 @@ def marketplace():
         'id': item_id
         }
         count += 1
-    print(desc)
+    
 
     return render_template('marketplace.html', items=new_items)

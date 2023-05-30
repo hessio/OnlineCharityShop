@@ -24,7 +24,7 @@
                 <strong><p class="price">€{{ items[key]['Price'] }}</p></strong>
                 <h2 id="capitalised">{{ items[key]['Name'] }}</h2>
                 </br>
-                <p id="capitalised" class="description">{{ items[key]['Description']  }}</p>
+                <p id="capitalised" class="description">{{ items[key]['Description']|safe }}</p>
               </div>  
             </div>
             <!-- <button class="modal-btn" data-modal="#popup{{ loop.index }}">Select</button> -->

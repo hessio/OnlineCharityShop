@@ -5,6 +5,7 @@
 {% block content %}
 
   <head>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <meta charset="UTF-8">
     <title>Post an Ad</title>
     <style>
@@ -51,6 +52,22 @@
       input[type="submit"]:hover {
         background-color: #1436cc;
       }
+
+      #loading-spinner {
+        display: none;
+        border: 8px solid #f3f3f3; /* Light gray border */
+        border-top: 8px solid #3498db; /* Blue top border */
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 2s linear infinite;
+        margin: 0 auto;
+      }
+
+      @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+      }
     </style>
   </head>
   <body>
@@ -58,18 +75,84 @@
     <form method="POST" action="/post_ad" enctype="multipart/form-data">
             <div class="field">
                 <div class="control">
-                    <input class="input is-large" type="text" name="title" placeholder="Title" autofocus="">
+                    <input class="input" type="text" name="title" placeholder="Title" autofocus="">
                 </div>
             </div>
-	    <div class="field">
+	          <!--  <div class="field">
                 <div class="control">
-                    <input class="input is-large" type="text" name="description" placeholder="Description" autofocus="">
+                    <input class="input" type="text" name="description" placeholder="Description" autofocus="">
                 </div>
+            </div> -->
+
+            <div class="field">
+              <!-- <label class="label">Description</label> -->
+              <div class="control">
+                <textarea id="myTextarea" class="input" rows="6" placeholder="Description" style="min-height: 120px;"></textarea>
+              </div>
             </div>
+
+            <div class="field">
+              <div class="control">
+                <button id="updateText" class="button is-primary" disabled>AI enhance your description</button>
+              </div>
+            </div>
+
+            <div id="loading-spinner"></div>
+
+            <script>
+              const userInput = document.getElementById('myTextarea');
+              const submitButton = document.getElementById('updateText');
+
+              submitButton.addEventListener('click', async function (event) {
+                event.preventDefault();
+                const message = userInput.value.trim();
+                const body = JSON.stringify({
+                  'message': message,
+                });
+
+                // Get the loading spinner element
+                const loadingSpinner = document.getElementById('loading-spinner');
+
+                try {
+                  
+                  const response = await axios.post('/ai_update', { message });
+                  // Show the loading spinner
+                  loadingSpinner.style.display = 'block';
+                  var ai_response = response.data.response.content;
+                  console.log(ai_response);
+                  const textarea = document.getElementById('myTextarea');
+                  textarea.value = ai_response;
+                  // Hide the loading spinner
+                  loadingSpinner.style.display = 'none';
+
+
+                //   const response = await fetch('/api/openai', {
+                //     method: 'POST',
+                //     headers: {
+                //       'Content-Type': 'application/json',
+                //     },
+                //     body,
+                //   });
+                //   console.log(response.data.response);
+                  
+                } catch (error) {
+                  console.error(error);
+                }
+              });
+            </script>
+
+            <script>
+              const textarea = document.getElementById('myTextarea');
+              const button = document.getElementById('updateText');
+
+              textarea.addEventListener('input', function() {
+                button.disabled = textarea.value.trim() === '';
+              });
+            </script>
             
             <div class="field">
                 <div class="control">
-                    <input class="input is-large" type="number" name="price" placeholder="Price">
+                    <input class="input" type="number" name="price" placeholder="Price">
                 </div>
             </div>
             <div style="display: flex; justify-content: center;">
