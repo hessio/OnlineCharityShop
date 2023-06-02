@@ -22,7 +22,7 @@ If click "Register" this is the page you are brought to   &emsp; &emsp; &emsp; &
 &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &nbsp; / &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; \ </br>
                   
 <div style="display:flex;">
-<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/23244853/242947324-b5594d6d-e9be-40cb-9fb2-fa387d8bf7af.png" alt="Image" width="50%" height="300"> <img src="https://github-production-user-asset-6210df.s3.amazonaws.com/23244853/242947324-b5594d6d-e9be-40cb-9fb2-fa387d8bf7af.png" alt="Image" width="50%" height="300">
+<img src="https://github-production-user-asset-6210df.s3.amazonaws.com/23244853/242947324-b5594d6d-e9be-40cb-9fb2-fa387d8bf7af.png" alt="Image" width="45%" height="300"> <img src="https://github-production-user-asset-6210df.s3.amazonaws.com/23244853/242947324-b5594d6d-e9be-40cb-9fb2-fa387d8bf7af.png" alt="Image" width="45%" height="300">
 </div>
 </br>
 Once you login this is the profile page for the user
