@@ -31,3 +31,8 @@ If click "Signup" this is the page you are brought to
 
 ![Screenshot 2023-06-02 at 18 07 39](https://github.com/hessio/OnlineMarketplace/assets/23244853/d32e7771-f91f-4df5-a7b4-add3812e6614)
 
+</br>
+Once you login this is the profile page for the user
+</br>
+
+![Screenshot 2023-06-02 at 18 20 06](https://github.com/hessio/OnlineMarketplace/assets/23244853/57734840-ab2b-455c-9d7c-0c6787302a2f)
