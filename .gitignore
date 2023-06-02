@@ -9,6 +9,7 @@ __pycache__/
 .DS_Store
 uploads/
 db.sqlite-journal
+db.sqlite
 
 # Distribution / packaging
 .Python
