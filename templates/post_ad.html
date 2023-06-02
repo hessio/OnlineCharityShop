@@ -78,16 +78,10 @@
                     <input class="input" type="text" name="title" placeholder="Title" autofocus="">
                 </div>
             </div>
-	          <!--  <div class="field">
-                <div class="control">
-                    <input class="input" type="text" name="description" placeholder="Description" autofocus="">
-                </div>
-            </div> -->
 
             <div class="field">
-              <!-- <label class="label">Description</label> -->
               <div class="control">
-                <textarea id="myTextarea" class="input" rows="6" placeholder="Description" style="min-height: 120px;"></textarea>
+                <textarea id="myTextarea" class="input" rows="6" name="description" placeholder="Description" style="min-height: 120px;"></textarea>
               </div>
             </div>
 
@@ -99,7 +93,28 @@
 
             <div id="loading-spinner"></div>
 
-            <script>
+            <div class="field">
+                <div class="control">
+                    <input class="input" type="number" name="price" placeholder="Price">
+                </div>
+            </div>
+            <div style="display: flex; justify-content: center; background-color:white;">
+            <div class="file has-name is-boxed">
+              <label class="file-label" id="file-label">
+                <input class="file-input" id="file-input" type="file" name="image">
+                <span class="file-cta">
+                  <span class="file-icon" style="background-color: inherit;">
+                    <i class="fas fa-upload" style="background-color: inherit;"></i>
+                  </span>
+                  <span id="file-label-span" style="color:black; background-color: inherit;">Choose file...</span>
+                  <img id="preview" src="" style="display: none;">
+                </span>
+              </label>
+            </div>
+            </div>
+            <button class="button is-block is-info is-large is-fullwidth">Post Ad</button>
+        </form>
+        <script>
               const userInput = document.getElementById('myTextarea');
               const submitButton = document.getElementById('updateText');
 
@@ -124,17 +139,6 @@
                   textarea.value = ai_response;
                   // Hide the loading spinner
                   loadingSpinner.style.display = 'none';
-
-
-                //   const response = await fetch('/api/openai', {
-                //     method: 'POST',
-                //     headers: {
-                //       'Content-Type': 'application/json',
-                //     },
-                //     body,
-                //   });
-                //   console.log(response.data.response);
-                  
                 } catch (error) {
                   console.error(error);
                 }
@@ -149,30 +153,6 @@
                 button.disabled = textarea.value.trim() === '';
               });
             </script>
-            
-            <div class="field">
-                <div class="control">
-                    <input class="input" type="number" name="price" placeholder="Price">
-                </div>
-            </div>
-            <div style="display: flex; justify-content: center;">
-            <div class="file has-name is-boxed">
-              <label class="file-label" id="file-label">
-                <input class="file-input" id="file-input" type="file" name="image">
-                <span class="file-cta">
-                  <span class="file-icon">
-                    <i class="fas fa-upload"></i>
-                  </span>
-                  <span id="file-label-span" style="color:black;">Choose file...</span>
-                </span>
-                <span class="file-name">
-                  No file selected
-                </span>
-              </label>
-            </div>
-            </div>
-            <button class="button is-block is-info is-large is-fullwidth">Post Ad</button>
-        </form>
         <script src="{{url_for('static', filename='script.js')}}"></script>
   </body>
 

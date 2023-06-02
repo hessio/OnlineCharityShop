@@ -14,78 +14,88 @@
   </head>
   <body>
     <div class="container">
-      <h1 class="test-payments" style="font-size: xx-large;">Marketplace</h1>
-      <div class="item-list">
-        {% for key, val in items.items() %}
-          <div class="item" data-modal="#popup{{ loop.index }}">
-            <img class="item-image" src="{{ items[key]['Image'] }}">
-            <div class="details-location">
-              <div class="details">
-                <strong><p class="price">€{{ items[key]['Price'] }}</p></strong>
-                <h2 id="capitalised">{{ items[key]['Name'] }}</h2>
-                </br>
-                <p id="capitalised" class="description">{{ items[key]['Description']|safe }}</p>
-              </div>  
-            </div>
-            <!-- <button class="modal-btn" data-modal="#popup{{ loop.index }}">Select</button> -->
-          </div>
-        {% endfor %}
-      </div>
-      {% for key, val in items.items() %}
-
-        <div id="popup{{ loop.index }}" class="modal">
-          <div class="modal-content">
-            <div class="half-size">
-              <img class="item-image-modal" src="{{ items[key]['Image'] }}">
-              <div class="details-location-modal">
-                <div class="details-modal">
-                  <p><strong>€{{ items[key]['Price'] }}</strong></p>
-                  <h2>{{ items[key]['Name']  }}</h2>
+      <h1 class="test-payments" style="font-size: xx-large; align-items: center;">Marketplace</h1>
+      {% if items|length == 0 %}
+        <div style="display: flex; justify-content: center; align-items: center;">
+          Nothing for sale now...
+          Try posting an ad of your own
+        </div>
+        </br>
+        </br>
+        <div style="display: flex; justify-content: center; align-items: center;">
+          <a href="/post_ad" class="button is-block is-info is-large" style="max-width: 200px;border-radius: 30px; background-color: #222222;">Post an ad</a>
+        </div>
+        
+      {% else %}
+        <div class="item-list">
+          {% for key, val in items.items() %}
+            <div class="item" data-modal="#popup{{ loop.index }}">
+              <img class="item-image" src="{{ items[key]['Image'] }}">
+              <div class="details-location">
+                <div class="details">
+                  <strong><p class="price">€{{ items[key]['Price'] }}</p></strong>
+                  <h2 id="capitalised">{{ items[key]['Name'] }}</h2>
                   </br>
-                  <p>{{ items[key]['Description'] }}</p>
-                  <form method="POST" action="{{ url_for('main.create_order') }}">
-                    <input type="hidden" name="button_value" value="{{ items[key]['id'] }}">
-                    <button class="buy-btn" type="submit">Buy Now!</button>
-                  </form>
-                  <button class="close-btn" data-modal="#popup{{ loop.index }}">Close</button>
+                  <p id="capitalised" class="description">{{ items[key]['Description']|safe }}</p>
+                </div>  
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+        {% for key, val in items.items() %}
+          <div id="popup{{ loop.index }}" class="modal">
+            <div class="modal-content">
+              <div class="half-size">
+                <img class="item-image-modal" src="{{ items[key]['Image'] }}">
+                <div class="details-location-modal">
+                  <div class="details-modal">
+                    <p><strong>€{{ items[key]['Price'] }}</strong></p>
+                    <h2>{{ items[key]['Name']  }}</h2>
+                    </br>
+                    <p class="description">{{ items[key]['Description'] }}</p>
+                    <form method="POST" action="{{ url_for('main.create_order') }}">
+                      <input type="hidden" name="button_value" value="{{ items[key]['id'] }}">
+                      <button class="buy-btn" type="submit">Buy Now!</button>
+                    </form>
+                    <button class="close-btn" data-modal="#popup{{ loop.index }}">Close</button>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      {% endfor %}
-    </div>
-    <script>
-
-      function sleepSync(ms) {
-        const start = Date.now();
-        while (Date.now() - start < ms);
-      }
-      
-      function myFunction(buttonValue) {
-        console.log(buttonValue);
+        {% endfor %}
+      </div>
+      <script>
+        function sleepSync(ms) {
+          const start = Date.now();
+          while (Date.now() - start < ms);
+        }
         
-        $.ajax({
-            type: "POST",
-            url: "/create_order",
-            data: {button_value: buttonValue},
-            success: function(response) {
+        function myFunction(buttonValue) {
+          console.log(buttonValue);
+          
+          $.ajax({
+              type: "POST",
+              url: "/create_order",
+              data: {button_value: buttonValue},
+              success: function(response) {
+                  console.log(response);
+                  console.log('true');
+
+                  window.location.replace("/new_page?response=" + response['money']);
+              },
+              error: function(xhr) {
+                // handle error response
                 console.log(response);
-                console.log('true');
+              }
+          });
 
-                window.location.replace("/new_page?response=" + response['money']);
-            },
-            error: function(xhr) {
-              // handle error response
-              console.log(response);
-            }
-        });
-
-        sleepSync(1000);
-
-      }
-    </script>
-    <script src="{{url_for('static', filename='script_marketplace.js')}}"></script>
+          sleepSync(1000);
+        }
+      </script>
+      <script src="{{url_for('static', filename='script_marketplace.js')}}"></script>
+      <script src="{{url_for('static', filename='capitaliseText.js')}}"></script>
+    {% endif %}
   </body>
 
 

@@ -10,3 +10,8 @@ class User(UserMixin, db.Model):
     first_name = db.Column(db.String(1000))
     last_name = db.Column(db.String(1000))
     square_cust_id = db.Column(db.String(1000))
+
+class Ad(db.Model):
+    ad_id = db.Column(db.String(1000), primary_key=True) # primary keys are required by SQLAlchemy
+    user_id = db.Column(db.String(1000))
+    square_id = db.Column(db.String(1000))

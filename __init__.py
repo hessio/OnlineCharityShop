@@ -14,7 +14,6 @@ def create_app():
     app.config['SECRET_KEY'] = '9OLWxND4o83j4K4iuopO'
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite'
     
-    #print('what the fucking fuck',file=sys.stderr)
     db.init_app(app)
 
     login_manager = LoginManager()

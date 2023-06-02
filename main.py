@@ -1,5 +1,4 @@
 # main.py
-
 from flask import Blueprint, render_template, request, redirect, url_for
 from flask_login import login_required, current_user
 import os
@@ -11,6 +10,14 @@ import time
 import square
 import flask
 import openai
+from .models import Ad
+
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager 
+import sys
+
+# init SQLAlchemy so we can use it later in our models
+from . import db
 
 # Load environment variables from .env file
 load_dotenv()
@@ -24,19 +31,15 @@ square_client = Client(
     access_token=access_token,
     environment='sandbox'
 )
-
 openai.api_key = os.getenv("OPEN_AI_KEY")
-
 
 main = Blueprint('main', __name__)
 
-
 def attach_image(item_id, image_file):
-    print(item_id, image_file)
+    # print(item_id, image_file)
     result = square_client.catalog.create_catalog_image(
         request = {
-            "idempotency_key": str(uuid.uuid4()),#"2b43f799-ec35-467c-8283-bc0c9f36545e",
-            # "file": str(f_stream),
+            "idempotency_key": str(uuid.uuid4()),
             "object_id": item_id,
             "image": {
                 "type": "IMAGE",
@@ -49,7 +52,6 @@ def attach_image(item_id, image_file):
         },
         image_file=image_file
     )
-    print(result.body)
     return result.body['image']['id']
 
 
@@ -58,13 +60,10 @@ def create_item(item_data):
 
     try:
         # Use the Catalog API to create the item
-        catalog_api = square_client.catalog
-
-        response = catalog_api.upsert_catalog_object(body=item_data)
+        response = square_client.catalog.upsert_catalog_object(body=item_data)
 
         # Return the item ID if successful
         if response.is_success():
-            # print(response.body)
             item_id = response.body['id_mappings'][0]['object_id']
             print(item_id)
             return item_id
@@ -77,31 +76,119 @@ def create_item(item_data):
 
 @main.route('/')
 def index():
-    #print('what the fuck')
     return render_template('index.html')
 
 @main.route('/profile')
 @login_required
 def profile():
+    user = current_user.id
+    rows = Ad.query.filter(Ad.user_id == user).all()
     return render_template('profile.html', name=current_user.first_name)
+
+@main.route('/user_ads')
+@login_required
+def user_ads():
+    user = current_user.id
+    rows = Ad.query.filter(Ad.user_id == user).all()
+
+    object_ids = []
+
+    for row in rows:
+        object_ids.append(row.square_id)
+
+    objs = square_client.catalog.batch_retrieve_catalog_objects(
+      body = {
+        "object_ids": object_ids
+      }
+    )
+    try:
+        rows = objs.body['objects']
+    except:
+        return render_template('user_ads.html', items={})
+
+    count = 0
+    new_items = {}
+    for row in rows:
+        
+        title = row['item_data']['name']
+        price = row['item_data']['variations'][0]['item_variation_data']['price_money']['amount']
+        image = row['item_data']['image_ids'][0]
+
+        desc = row['item_data']['description_plaintext']
+        item_id = row['id']
+        ims = square_client.catalog.retrieve_catalog_object(
+          object_id = image,
+        )
+
+        image = ims.body['object']['image_data']['url']
+
+        new_items['item'+str(count)] = {'Name': title, 
+        'Price': price,
+        'Description': desc,
+        'Image': image,
+        'id': item_id
+        }
+        count += 1
+
+    return render_template('user_ads.html', items=new_items)
+
+@main.route('/delete_item', methods=['POST'])
+def delete_item():
+    item_id = request.form.get('item_id')
+    list_objs = square_client.catalog.list_catalog()
+
+    print(list_objs.body, item_id)
+
+    for obj in list_objs.body['objects']:
+        if obj['item_data']['variations'][0]['id'] == item_id:
+            print('FOUND THE ID I WAS LOOKING FOR: ', obj['id'])
+            item_id = obj['id']
+            break
+    
+    # Code to delete the item from the database using the item_id
+    result = square_client.catalog.delete_catalog_object(
+      object_id = item_id
+    )
+    
+    items = Ad.query.filter_by(square_id=item_id).all()
+    
+    for item in items:
+        if item.square_id:
+            db.session.delete(item)
+            db.session.commit()
+            print("Item deleted successfully!")
+        else:
+            print("Item not found")
+
+    # Return a JSON response to indicate the success of the deletion
+    return flask.jsonify({'message': 'Item deleted successfully'})
+
+def attach_user(user_id, square_ad_id):
+    print(user_id, square_ad_id)
+    new_ad = Ad(ad_id=str(uuid.uuid1()), user_id=str(user_id), square_id=str(square_ad_id))
+
+    # add the new ad to the database
+    db.session.add(new_ad)
+    db.session.commit()
+    return 'success'
 
 @main.route('/post_ad', methods=['GET', 'POST'])
 @login_required
 def post_ad():
+    print(request.form)
     if request.method == 'POST':
         title = request.form['title']
         price = request.form['price']
         desc = request.form['description']
         image = request.files['image']
-        cwd = os.getcwd()
-        print(cwd)
+
         image.save('project/uploads/' + image.filename)
 
         item_data = {
             "idempotency_key": str(uuid.uuid4()),
             "object": {
             "type": "ITEM",
-            "id": "#111",
+            "id": "#"+str(random.randint(0, 9999)),
             "item_data": {
               "name": title,
               "available_online": False,
@@ -128,7 +215,7 @@ def post_ad():
                     "track_inventory": True,
                     "available_for_booking": False,
                     "sellable": True,
-                    "stockable": False
+                    "stockable": True,
                   }
                 }
               ],
@@ -141,12 +228,12 @@ def post_ad():
         item_id = create_item(item_data)
 
         f_stream = open('project/uploads/' + image.filename, "rb")
-        print('project/uploads/' + image.filename)
 
         attach_image(item_id, f_stream)
-        print(current_user.id)
-        # attach_user(current_user.)
-    
+        
+        # attach a user to each item
+        attach_user(current_user.id, item_id)
+
     return render_template('post_ad.html')
 
 @main.route('/create_order', methods=['POST', 'GET'])
@@ -171,46 +258,34 @@ def create_order():
     price = "{:0.2f}".format(round((float(response.body['order']['line_items'][0]['base_price_money']['amount'])), 2))
 
     order_id = response.body['order']['id']
-    # print('create order response: ', response.body)
 
-    return render_template('payments.html', order_id=order_id, price=price)
-    # if response.is_success():
-    #     print(';;;;;;')
-    #     # Return the payment status and id
-    #     return flask.jsonify({
-    #       'money': response.body['order']['line_items'][0]['base_price_money']['amount'],
-    #       # 'payment_id': response.body['payment']['id']
-    #     })
-    # elif response.is_error():
-    #     # Return the error message
-    #     return flask.jsonify({
-    #       'error': response.errors[0]['detail']
-    #     })
-
-    # time.sleep(1000)
-    # return redirect(url_for('main.new_page')) #, price=price))
+    return render_template('payments.html', order_id=order_id, price=price, item_id=item_id)
 
 @main.route('/new_page', methods=['POST', 'GET'])
 def new_page():
     data = request
-    # print('this is the request: ' , data)
     return render_template('payments.html')
 
 # Define a route to process the payment
 @main.route('/payment', methods=['POST'])
 def process_payment():
   # Get the nonce from the request body
-
   request_body = flask.request.get_json()
   nonce = request_body.get('sourceId')
-  print('request body', request_body, '    ', nonce)
+  item_id = request_body.get('item_id')
+
+  list_objs = square_client.catalog.list_catalog()
+
+  for obj in list_objs.body['objects']:
+    if obj['item_data']['variations'][0]['id'] == item_id:
+        item_id = obj['id']
+        break
 
   result = square_client.orders.retrieve_order(
     order_id = request_body.get('order_id')
   )
 
   price = result.body['order']['line_items'][0]['base_price_money']['amount']
-  print('this is hte order result', result.body['order']['line_items'][0]['base_price_money']['amount'])
 
   # Create a payment request with the nonce and amount
   payment_request = {
@@ -225,7 +300,24 @@ def process_payment():
   # Call the Payments API to create a payment
   response = square_client.payments.create_payment(payment_request)
 
-  print(response)
+  complete_payment = square_client.payments.complete_payment(
+    payment_id = response.body['payment']['id'],
+    body={}
+  )
+
+  deleted = square_client.catalog.delete_catalog_object(
+    object_id = item_id
+  )
+
+  items = Ad.query.filter_by(square_id=item_id).all()
+
+  for item in items:
+    if item:
+        db.session.delete(item)
+        db.session.commit()
+        print("Item deleted successfully!")
+    else:
+        print("Item not found")
 
   # Check if the payment was successful
   if response.is_success():
@@ -246,7 +338,6 @@ def process_payment():
 def process_user_details():
 
   request_body = flask.request.get_json()
-  # order_id = request_body.get('order_id')
   
   cust_result = square_client.customers.retrieve_customer(
     customer_id = current_user.square_cust_id,
@@ -255,10 +346,6 @@ def process_user_details():
   order_result = square_client.orders.retrieve_order(
     order_id = request_body.get('order_id')
   )
-
-  print('order result: ', order_result.body['order']['line_items'][0]['base_price_money']['amount'])
-
-  print('this is hte order result', cust_result.body['customer']['address'])
 
   address = [cust_result.body['customer']['address']['address_line_1'], cust_result.body['customer']['address']['address_line_2']]
   return flask.jsonify({
@@ -279,12 +366,11 @@ def process_user_details():
 
 @main.route('/completed_purchase', methods=["POST", "GET"])
 def completed_purchase():
-    # time.sleep(1000)
-    print(request)
     return render_template('completed_purchase.html')
 
 @main.route('/ai_update', methods=['POST'])
 def process_openai_request():
+    openai.api_key = os.getenv("OPEN_AI_KEY")
     try:
         message = request.json['message']
 
@@ -310,8 +396,11 @@ def marketplace():
         "include_deleted_objects": False,
       }
     )
-    response = result.body['objects']
-    related = result.body['related_objects']
+    try:
+        response = result.body['objects']
+        related = result.body['related_objects']    
+    except:
+        return render_template('marketplace.html')
     
     new_items = {}
     count = 0
@@ -319,8 +408,6 @@ def marketplace():
     image=''
     item_id=''
     price_money = ''
-
-    print(related)
     
     for item in response:
 
@@ -338,29 +425,24 @@ def marketplace():
 
         except:
             image = '/static/placeholder.png'
-            #print(item['id'])
 
         try:
             print('price test', item['item_data']['variations'][0]['item_variation_data']['price_money']['amount'])
             price_money = item['item_data']['variations'][0]['item_variation_data']['price_money']['amount']
-
         except:
             price_money = ''
 
         try:
-            print('Description: ', item['item_data']['description_plaintext'])
             desc=item['item_data']['description_plaintext']
         except:
             desc=''
 
-        print(image)
         new_items['item'+str(count)] = {'Name': item['item_data']['name'], 
-        'Price': price_money, #item['item_data']['variations'][0]['item_variation_data']['price_money']['amount'],
+        'Price': price_money,
         'Description': desc,
         'Image': image,
         'id': item_id
         }
         count += 1
     
-
     return render_template('marketplace.html', items=new_items)

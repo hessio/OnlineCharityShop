@@ -30,6 +30,7 @@
           sourceId: token,
           verificationToken,
           'order_id': '{{ order_id }}',
+          'item_id': '{{ item_id }}',
         });
 
         const paymentResponse = await fetch('/payment', {

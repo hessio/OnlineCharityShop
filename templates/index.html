@@ -12,15 +12,26 @@
   <link rel= "stylesheet" type= "text/css" href= "{{ url_for('static',filename='styles/base.css') }}">
 </head>
 <h1 class="title" style="color:black;">
-  Local Marketplace
+  Online Charity Shop
 </h1>
 <h2 class="subtitle" style="color:black;">
-  Login or Signup to see what we have for sale, or sell your own items!
-</h2>
-<!-- <button onclick="location.href='/signup'">Register</button> -->
-<div class="choice">
-  <a href="/signup" class="button is-block is-info is-large is-fullwidth">Register</a>
+  Discover a world of giving at our online charity shop!
   </br>
-  <a href="/login" class="button is-block is-info is-large is-fullwidth">Login</a>
+  </br>
+  </br>
+  </br>
+  <div style="display: flex;justify-content: center;align-items: center;">
+    <div style="box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5); border-radius: 20px; padding: 20px; width: 60%;">
+      <p style="text-align:left;">Sign in or create an account to explore a wide range of items available for sale or contribute by selling your own. As an online charity shop, every purchase you make contributes to a local housing charity, helping them make a positive impact in the community. Join us in making a difference while finding great items to buy or sell!</p>
+    </div>
+  </div>
+</h2>
+</br>
+</br>
+</br>
+<div class="choice">
+  <a href="/signup" class="button is-block is-large is-info is-fullwidth" style="border-radius: 30px; background-color: #222222;">Register</a>
+  </br>
+  <a href="/login" class="button is-block is-large is-info is-fullwidth" style="border-radius: 30px; background-color: #222222;">Login</a>
 </div>
 {% endblock %}
