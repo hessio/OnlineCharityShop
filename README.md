@@ -41,6 +41,6 @@ and then to purchase an item, it looks like so
 
 ![ezgif-3-c7ddef3de2](https://github.com/hessio/OnlineMarketplace/assets/23244853/d40b8a61-cc17-4f86-b2fa-ed3e43702158)
 
-Then to upload an image it looks like so. There is an option to get chatgpt to rewrite/improve your description of your item for sale
+Then creating an ad looks like this. There is an option to get chatgpt to rewrite/improve your description of the item for sale
 ![ezgif-3-7fb559ed8a](https://github.com/hessio/OnlineMarketplace/assets/23244853/04dedcde-5273-43fd-be7b-51e1c401ef83)
 
