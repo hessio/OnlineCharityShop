@@ -14,7 +14,7 @@ The benefit being that you don't have to go to a physical location to donate you
 
 </br>
 
-If click "Register" this is the page you are brought to   &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp;      If click "Signup" this is the page you are brought to
+If click "Register" this is the page you are brought to   &emsp; &emsp; &emsp; &emsp; &emsp;     If click "Signup" this is the page you are brought to
 
 </br>
 &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &nbsp; &nbsp; &nbsp; / &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &emsp; &nbsp; &nbsp; &nbsp; \ </br>
