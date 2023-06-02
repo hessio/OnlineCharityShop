@@ -36,3 +36,7 @@ Once you login you can view the marketplace for items that are on sale. If there
 However if there are items for sale you can view them like so
 
 ![Screenshot 2023-06-02 at 18 32 04](https://github.com/hessio/OnlineMarketplace/assets/23244853/1c53c9f0-e7c1-4bd2-88e9-a6294ec01553)
+
+and then to purchase an item, it looks like so
+
+![ezgif-3-c7ddef3de2](https://github.com/hessio/OnlineMarketplace/assets/23244853/d40b8a61-cc17-4f86-b2fa-ed3e43702158)
